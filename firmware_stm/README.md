@@ -1,0 +1,1 @@
+# Place stm32 firmware project(s) here
