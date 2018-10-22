@@ -50,6 +50,10 @@
 #define B1_Pin GPIO_PIN_13
 #define B1_GPIO_Port GPIOC
 #define B1_EXTI_IRQn EXTI15_10_IRQn
+#define B_BUMPER1_Pin GPIO_PIN_0
+#define B_BUMPER1_GPIO_Port GPIOC
+#define B_BUMPER2_Pin GPIO_PIN_1
+#define B_BUMPER2_GPIO_Port GPIOC
 #define USART_TX_Pin GPIO_PIN_2
 #define USART_TX_GPIO_Port GPIOA
 #define USART_RX_Pin GPIO_PIN_3
