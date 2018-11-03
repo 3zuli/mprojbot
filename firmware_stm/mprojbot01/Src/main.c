@@ -41,6 +41,19 @@
 #include "stm32f4xx_hal.h"
 
 /* USER CODE BEGIN Includes */
+// !!!!!!!!  DOLEZITE PRE FUNKCNOST printf(): !!!!!!!!!
+// !!!!!!!!  DOLEZITE PRE FUNKCNOST printf(): !!!!!!!!!
+// !!!!!!!!  DOLEZITE PRE FUNKCNOST printf(): !!!!!!!!!
+//	 Project Properties -> C/C++ Build->Settings-> Tool Settings-> C/C++ Linker-> General
+//	 	 Runtime Library zmenit na "Newlib standard"
+// 		 System calls zmenit na "Don't use syscalls from library"
+//	 v src/ je potrebny subor syscalls.c. Ak tam nie je, rucne ho vytvorit a skopirovat obsah z
+//	 https://github.com/fboris/STM32Cube_FW_F4/blob/master/Projects/STM32F429I-Discovery/Examples/BSP/TrueSTUDIO/syscalls.c
+// !!!!!!!!  DOLEZITE PRE FUNKCNOST printf()  !!!!!!!!!
+
+#include <stdio.h>
+
+#include "uart.h"
 #include "MotorControl.h"
 
 /* USER CODE END Includes */
@@ -112,6 +125,8 @@ int main(void)
 
   initMotors();
   uint8_t motor = MOTOR_L;
+  printf("printf test\n");
+  uartPrintf("uartPrintf test\n");
 
   /* USER CODE END 2 */
 
@@ -122,8 +137,9 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-	  uint16_t n = sprintf(msg, "It works %d!\r\n", counter);
-	  HAL_UART_Transmit(&huart2, msg, n, 100);
+	  uint16_t n = sprintf(msg, "It works %l!\r\n", counter);
+	  HAL_UART_Transmit(&huart2, (uint8_t*)msg, n, 100);
+	  uartPrintf("It works with custom printf %l!\r\n", counter);
 	  counter++;
 	  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, !HAL_GPIO_ReadPin(LD2_GPIO_Port, LD2_Pin));
 	  HAL_Delay(250);
