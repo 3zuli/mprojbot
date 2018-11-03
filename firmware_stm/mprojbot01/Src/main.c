@@ -41,6 +41,7 @@
 #include "stm32f4xx_hal.h"
 
 /* USER CODE BEGIN Includes */
+#include "MotorControl.h"
 
 /* USER CODE END Includes */
 
@@ -109,6 +110,9 @@ int main(void)
   char msg[100];
   uint32_t counter = 0;
 
+  initMotors();
+  uint8_t motor = MOTOR_L;
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -123,6 +127,27 @@ int main(void)
 	  counter++;
 	  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, !HAL_GPIO_ReadPin(LD2_GPIO_Port, LD2_Pin));
 	  HAL_Delay(250);
+
+	  float speed = 0;
+	  for (speed = 0; speed < 1; speed += 0.01){
+		  setMotor(motor, speed);
+		  HAL_Delay(10);
+	  }
+	  HAL_Delay(500);
+	  for (speed = 1.0; speed > -1; speed -= 0.01){
+		  setMotor(motor, speed);
+		  HAL_Delay(10);
+	  }
+	  HAL_Delay(500);
+	  for (speed = -1.0; speed < 0; speed += 0.01){
+		  setMotor(motor, speed);
+		  HAL_Delay(10);
+	  }
+	  HAL_Delay(500);
+	  if (motor == MOTOR_L)
+		  motor = MOTOR_R;
+	  else
+		  motor = MOTOR_L;
   }
   /* USER CODE END 3 */
 
