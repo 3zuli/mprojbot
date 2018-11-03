@@ -54,18 +54,34 @@
 #define B_BUMPER1_GPIO_Port GPIOC
 #define B_BUMPER2_Pin GPIO_PIN_1
 #define B_BUMPER2_GPIO_Port GPIOC
+#define M2_ENC_A_Pin GPIO_PIN_0
+#define M2_ENC_A_GPIO_Port GPIOA
+#define M2_ENC_B_Pin GPIO_PIN_1
+#define M2_ENC_B_GPIO_Port GPIOA
 #define USART_TX_Pin GPIO_PIN_2
 #define USART_TX_GPIO_Port GPIOA
 #define USART_RX_Pin GPIO_PIN_3
 #define USART_RX_GPIO_Port GPIOA
 #define LD2_Pin GPIO_PIN_5
 #define LD2_GPIO_Port GPIOA
+#define M1_PWM_Pin GPIO_PIN_6
+#define M1_PWM_GPIO_Port GPIOA
+#define M2_PWM_Pin GPIO_PIN_7
+#define M2_PWM_GPIO_Port GPIOA
 #define TMS_Pin GPIO_PIN_13
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
 #define TCK_GPIO_Port GPIOA
 #define SWO_Pin GPIO_PIN_3
 #define SWO_GPIO_Port GPIOB
+#define M1_DIR_Pin GPIO_PIN_4
+#define M1_DIR_GPIO_Port GPIOB
+#define M2_DIR_Pin GPIO_PIN_5
+#define M2_DIR_GPIO_Port GPIOB
+#define M1_ENC_A_Pin GPIO_PIN_6
+#define M1_ENC_A_GPIO_Port GPIOB
+#define M1_ENC_B_Pin GPIO_PIN_7
+#define M1_ENC_B_GPIO_Port GPIOB
 
 /* ########################## Assert Selection ############################## */
 /**
