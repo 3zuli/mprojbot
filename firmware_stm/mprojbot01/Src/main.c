@@ -123,7 +123,8 @@ int main(void)
   char msg[100];
   uint32_t counter = 0;
 
-  initMotors();
+//  initMotors();
+
   uint8_t motor = MOTOR_L;
   printf("printf test\n");
   uartPrintf("uartPrintf test\n");
@@ -137,33 +138,57 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-	  uint16_t n = sprintf(msg, "It works %l!\r\n", counter);
+	  uint16_t n = sprintf(msg, "It works %d!\r\n", counter);
 	  HAL_UART_Transmit(&huart2, (uint8_t*)msg, n, 100);
-	  uartPrintf("It works with custom printf %l!\r\n", counter);
+	  uartPrintf("It works with custom printf %d!\r\n", counter);
 	  counter++;
 	  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, !HAL_GPIO_ReadPin(LD2_GPIO_Port, LD2_Pin));
-	  HAL_Delay(250);
+//	  HAL_Delay(1000);
+//	  setMotorPWM(MOTOR_L, DIR_FWD, 0);
+//	  HAL_Delay(1000);
+//	  setMotorPWM(MOTOR_L, DIR_FWD, 512);
+//	  setMotorPWM(MOTOR_R, DIR_FWD, 512);
+//	  HAL_Delay(1000);
+//	  setMotorPWM(MOTOR_L, DIR_REV, 512);
+//	  setMotorPWM(MOTOR_R, DIR_REV, 512);
+//	  HAL_Delay(1000);
+//	  setMotorPWM(MOTOR_L, DIR_FWD, 2048);
+//	  HAL_Delay(1000);
+//	  setMotorPWM(MOTOR_L, DIR_FWD, 4096);
 
-	  float speed = 0;
-	  for (speed = 0; speed < 1; speed += 0.01){
-		  setMotor(motor, speed);
-		  HAL_Delay(10);
-	  }
-	  HAL_Delay(500);
-	  for (speed = 1.0; speed > -1; speed -= 0.01){
-		  setMotor(motor, speed);
-		  HAL_Delay(10);
-	  }
-	  HAL_Delay(500);
-	  for (speed = -1.0; speed < 0; speed += 0.01){
-		  setMotor(motor, speed);
-		  HAL_Delay(10);
-	  }
-	  HAL_Delay(500);
-	  if (motor == MOTOR_L)
-		  motor = MOTOR_R;
-	  else
-		  motor = MOTOR_L;
+	  setMotor(MOTOR_L, 0.25);
+//	  setMotor(MOTOR_R, 0.25);
+	  HAL_Delay(3000);
+	  setMotor(MOTOR_L, 0.0);
+//	  setMotor(MOTOR_R, 0.0);
+	  HAL_Delay(1000);
+	  setMotor(MOTOR_L, -0.25);
+//	  setMotor(MOTOR_R, -0.25);
+	  HAL_Delay(3000);
+	  setMotor(MOTOR_L, 0.0);
+//	  setMotor(MOTOR_R, 0.0);
+	  HAL_Delay(1000);
+
+//	  float speed = 0;
+//	  for (speed = 0; speed < 1; speed += 0.01){
+//		  setMotor(motor, speed);
+//		  HAL_Delay(10);
+//	  }
+//	  HAL_Delay(500);
+//	  for (speed = 1.0; speed > -1; speed -= 0.01){
+//		  setMotor(motor, speed);
+//		  HAL_Delay(10);
+//	  }
+//	  HAL_Delay(500);
+//	  for (speed = -1.0; speed < 0; speed += 0.01){
+//		  setMotor(motor, speed);
+//		  HAL_Delay(10);
+//	  }
+//	  HAL_Delay(500);
+//	  if (motor == MOTOR_L)
+//		  motor = MOTOR_R;
+//	  else
+//		  motor = MOTOR_L;
   }
   /* USER CODE END 3 */
 
@@ -229,26 +254,14 @@ void SystemClock_Config(void)
 static void MX_TIM3_Init(void)
 {
 
-  TIM_ClockConfigTypeDef sClockSourceConfig;
   TIM_MasterConfigTypeDef sMasterConfig;
   TIM_OC_InitTypeDef sConfigOC;
 
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 1000;
+  htim3.Init.Prescaler = 0;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 0;
-  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV4;
-  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
-  {
-    _Error_Handler(__FILE__, __LINE__);
-  }
-
-  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
-  {
-    _Error_Handler(__FILE__, __LINE__);
-  }
-
+  htim3.Init.Period = 4096;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);

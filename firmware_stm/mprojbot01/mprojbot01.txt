@@ -1,13 +1,12 @@
 Configuration	mprojbot01
 STM32CubeMX 	4.23.0
-Date	11/03/2018
+Date	11/08/2018
 MCU	STM32F411RETx
 
 
 
 PERIPHERALS	MODES	FUNCTIONS	PINS
 SYS	SysTick	SYS_VS_Systick	VP_SYS_VS_Systick
-TIM3	Internal Clock	TIM3_VS_ClockSourceINT	VP_TIM3_VS_ClockSourceINT
 TIM3	PWM Generation CH1	TIM3_CH1	PA6
 TIM3	PWM Generation CH2	TIM3_CH2	PA7
 TIM4	Encoder Mode	TIM4_CH1	PB6

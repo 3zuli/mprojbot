@@ -23,23 +23,39 @@ void setMotor(uint8_t motor, float speed){
 		speed = -1.0f;
 
 	if (speed >= 0){
-		setMotorPWM(motor, DIR_FWD, speed*UINT16_MAX);
+		setMotorPWM(motor, DIR_FWD, speed*PWM_MAX);
 	}
 	else {
-		setMotorPWM(motor, DIR_REV, -1*speed*UINT16_MAX);
+		setMotorPWM(motor, DIR_REV, -1*speed*PWM_MAX);
 	}
 }
 
+/*
+ * MX1508 control table
+ * https://forums.parallax.com/discussion/168432/h-bridges-of-madison-county-77-cents
+ * 			IN1		IN2
+ *  FWD	   1/PWM     0
+ *  REV		 0     1/PWM
+ * IDLE      0       0
+ * BRAKE     1       1
+ */
 void setMotorPWM(uint8_t motor, uint8_t direction, uint32_t pwm){
-	if (pwm > UINT16_MAX)
-		pwm = UINT16_MAX;
+	if (pwm > PWM_MAX)
+		pwm = PWM_MAX;
 
 	TIM_OC_InitTypeDef sConfigOC;
 	sConfigOC.OCMode = TIM_OCMODE_PWM1;
 	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
 	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
 
-	if (direction == DIR_FWD){
+	if (pwm == 0){
+		sConfigOC.Pulse = 0;
+		if (motor == MOTOR_L)
+			HAL_GPIO_WritePin(M1_DIR_GPIO_Port, M1_DIR_Pin, GPIO_PIN_RESET);
+		else
+			HAL_GPIO_WritePin(M2_DIR_GPIO_Port, M2_DIR_Pin, GPIO_PIN_RESET);
+	}
+	else if (direction == DIR_FWD){
 		sConfigOC.Pulse = pwm;
 		if (motor == MOTOR_L)
 			HAL_GPIO_WritePin(M1_DIR_GPIO_Port, M1_DIR_Pin, GPIO_PIN_SET);
@@ -47,7 +63,7 @@ void setMotorPWM(uint8_t motor, uint8_t direction, uint32_t pwm){
 			HAL_GPIO_WritePin(M2_DIR_GPIO_Port, M2_DIR_Pin, GPIO_PIN_SET);
 	}
 	else {
-		sConfigOC.Pulse = 65535 - pwm;
+		sConfigOC.Pulse = PWM_MAX - pwm;
 		if (motor == MOTOR_L)
 			HAL_GPIO_WritePin(M1_DIR_GPIO_Port, M1_DIR_Pin, GPIO_PIN_RESET);
 		else
@@ -60,7 +76,13 @@ void setMotorPWM(uint8_t motor, uint8_t direction, uint32_t pwm){
 	else
 		channel = TIM_CHANNEL_2;
 
+
 	if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, channel) != HAL_OK)
+	{
+		_Error_Handler(__FILE__, __LINE__);
+	}
+
+	if (HAL_TIM_PWM_Start(&htim3, channel) != HAL_OK)
 	{
 		_Error_Handler(__FILE__, __LINE__);
 	}

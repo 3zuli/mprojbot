@@ -18,6 +18,8 @@
 #define DIR_FWD 0
 #define DIR_REV 1
 
+#define PWM_MAX 4096
+
 extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim4;
 
