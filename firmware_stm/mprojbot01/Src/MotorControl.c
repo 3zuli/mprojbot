@@ -8,12 +8,14 @@
 #include "MotorControl.h"
 
 void initMotors(){
-	if (HAL_TIM_Base_Start(&htim3) != HAL_OK)	{
-		_Error_Handler(__FILE__, __LINE__);
-	}
-	if (HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1 | TIM_CHANNEL_2) != HAL_OK)	{
-		_Error_Handler(__FILE__, __LINE__);
-	}
+
+}
+
+void initEncoders(){
+	TIM4->CNT = 0;
+	TIM5->CNT = 0;
+	HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_ALL);
+	HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_ALL);
 }
 
 void setMotor(uint8_t motor, float speed){
@@ -43,48 +45,50 @@ void setMotorPWM(uint8_t motor, uint8_t direction, uint32_t pwm){
 	if (pwm > PWM_MAX)
 		pwm = PWM_MAX;
 
-	TIM_OC_InitTypeDef sConfigOC;
-	sConfigOC.OCMode = TIM_OCMODE_PWM1;
-	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+	TIM_OC_InitTypeDef sConfigA, sConfigB;
+	sConfigA.OCMode = TIM_OCMODE_PWM1;
+	sConfigA.OCPolarity = TIM_OCPOLARITY_HIGH;
+	sConfigA.OCFastMode = TIM_OCFAST_DISABLE;
+	sConfigB.OCMode = TIM_OCMODE_PWM1;
+	sConfigB.OCPolarity = TIM_OCPOLARITY_HIGH;
+	sConfigB.OCFastMode = TIM_OCFAST_DISABLE;
 
-	if (pwm == 0){
-		sConfigOC.Pulse = 0;
-		if (motor == MOTOR_L)
-			HAL_GPIO_WritePin(M1_DIR_GPIO_Port, M1_DIR_Pin, GPIO_PIN_RESET);
-		else
-			HAL_GPIO_WritePin(M2_DIR_GPIO_Port, M2_DIR_Pin, GPIO_PIN_RESET);
+	if (pwm == 0) {
+		sConfigA.Pulse = 0;
+		sConfigB.Pulse = 0;
 	}
-	else if (direction == DIR_FWD){
-		sConfigOC.Pulse = pwm;
-		if (motor == MOTOR_L)
-			HAL_GPIO_WritePin(M1_DIR_GPIO_Port, M1_DIR_Pin, GPIO_PIN_SET);
-		else
-			HAL_GPIO_WritePin(M2_DIR_GPIO_Port, M2_DIR_Pin, GPIO_PIN_SET);
+	else if (direction == DIR_FWD) {
+		sConfigA.Pulse = PWM_MAX-pwm;
+		sConfigB.Pulse = PWM_MAX;
+	}
+	else if (direction == DIR_REV) {
+		sConfigA.Pulse = PWM_MAX;
+		sConfigB.Pulse = PWM_MAX-pwm;
+	}
+
+	uint32_t channelA = TIM_CHANNEL_1;
+	uint32_t channelB = TIM_CHANNEL_3;
+	if (motor == MOTOR_L){
+		channelA = TIM_CHANNEL_1;
+		channelB = TIM_CHANNEL_3;
 	}
 	else {
-		sConfigOC.Pulse = PWM_MAX - pwm;
-		if (motor == MOTOR_L)
-			HAL_GPIO_WritePin(M1_DIR_GPIO_Port, M1_DIR_Pin, GPIO_PIN_RESET);
-		else
-			HAL_GPIO_WritePin(M2_DIR_GPIO_Port, M2_DIR_Pin, GPIO_PIN_RESET);
+		// Right motor is reversed
+		channelA = TIM_CHANNEL_4;
+		channelB = TIM_CHANNEL_2;
 	}
 
-	uint32_t channel = TIM_CHANNEL_1;
-	if (motor == MOTOR_L)
-		channel = TIM_CHANNEL_1;
-	else
-		channel = TIM_CHANNEL_2;
-
-
-	if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, channel) != HAL_OK)
+	if (   HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigA, channelA) != HAL_OK
+		|| HAL_TIM_PWM_Start(&htim3, channelA) != HAL_OK)
 	{
 		_Error_Handler(__FILE__, __LINE__);
 	}
 
-	if (HAL_TIM_PWM_Start(&htim3, channel) != HAL_OK)
+	if (   HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigB, channelB) != HAL_OK
+			|| HAL_TIM_PWM_Start(&htim3, channelB) != HAL_OK)
 	{
 		_Error_Handler(__FILE__, __LINE__);
 	}
+
 }
 

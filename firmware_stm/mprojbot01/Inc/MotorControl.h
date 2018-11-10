@@ -22,8 +22,10 @@
 
 extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim4;
+extern TIM_HandleTypeDef htim5;
 
 void initMotors();
+void initEncoders();
 
 void setMotor(uint8_t motor, float speed);
 void setMotorPWM(uint8_t motor, uint8_t direction, uint32_t pwm);

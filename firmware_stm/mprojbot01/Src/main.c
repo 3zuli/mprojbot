@@ -122,8 +122,11 @@ int main(void)
   /* USER CODE BEGIN 2 */
   char msg[100];
   uint32_t counter = 0;
+  volatile uint32_t c1 = 0;
+  volatile uint32_t c2 = 0;
 
 //  initMotors();
+  initEncoders();
 
   uint8_t motor = MOTOR_L;
   printf("printf test\n");
@@ -143,6 +146,14 @@ int main(void)
 	  uartPrintf("It works with custom printf %d!\r\n", counter);
 	  counter++;
 	  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, !HAL_GPIO_ReadPin(LD2_GPIO_Port, LD2_Pin));
+
+	  setMotor(MOTOR_R, 0.25);
+	  HAL_Delay(500);
+	  setMotor(MOTOR_R, 0);
+	  c1 = TIM4->CNT;
+	  c2 = TIM5->CNT;
+	  uartPrintf("%ld %ld\r\n", c1, c2);
+
 //	  HAL_Delay(1000);
 //	  setMotorPWM(MOTOR_L, DIR_FWD, 0);
 //	  HAL_Delay(1000);
@@ -156,18 +167,18 @@ int main(void)
 //	  HAL_Delay(1000);
 //	  setMotorPWM(MOTOR_L, DIR_FWD, 4096);
 
-	  setMotor(MOTOR_L, 0.25);
+//	  setMotor(MOTOR_L, 0.25);
 //	  setMotor(MOTOR_R, 0.25);
-	  HAL_Delay(3000);
-	  setMotor(MOTOR_L, 0.0);
+//	  HAL_Delay(3000);
+//	  setMotor(MOTOR_L, 0.0);
 //	  setMotor(MOTOR_R, 0.0);
-	  HAL_Delay(1000);
-	  setMotor(MOTOR_L, -0.25);
+//	  HAL_Delay(1000);
+//	  setMotor(MOTOR_L, -0.25);
 //	  setMotor(MOTOR_R, -0.25);
-	  HAL_Delay(3000);
-	  setMotor(MOTOR_L, 0.0);
+//	  HAL_Delay(3000);
+//	  setMotor(MOTOR_L, 0.0);
 //	  setMotor(MOTOR_R, 0.0);
-	  HAL_Delay(1000);
+//	  HAL_Delay(1000);
 
 //	  float speed = 0;
 //	  for (speed = 0; speed < 1; speed += 0.01){
@@ -288,6 +299,16 @@ static void MX_TIM3_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
   HAL_TIM_MspPostInit(&htim3);
 
 }
@@ -302,9 +323,9 @@ static void MX_TIM4_Init(void)
   htim4.Instance = TIM4;
   htim4.Init.Prescaler = 0;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim4.Init.Period = 0;
+  htim4.Init.Period = 65535;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
   sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
   sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
   sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
@@ -337,9 +358,9 @@ static void MX_TIM5_Init(void)
   htim5.Instance = TIM5;
   htim5.Init.Prescaler = 0;
   htim5.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim5.Init.Period = 0;
+  htim5.Init.Period = 65535;
   htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
   sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
   sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
   sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
