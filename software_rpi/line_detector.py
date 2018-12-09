@@ -23,22 +23,55 @@ while(True):
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     # thresholding for filtering out white color
-    ret, thresh = cv2.threshold(gray, 100, 255, cv2.THRESH_BINARY_INV)
+    ret, thresh = cv2.threshold(gray, 130, 150, cv2.THRESH_BINARY_INV)
 
     # find all contours from thresholded image
-    _, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))
+    dilated = cv2.dilate(thresh, kernel)
+    _, contours, _ = cv2.findContours(dilated.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+
     filtered_contours = []
 
     # we are able to calculate contour area
     # according to fact, that many small blobs are detected
     # we filter out contours with small area - izi
+    biggest_contour = []
+    biggest_contour_area = 0
+    center_points = []
+
     for cnt in contours:
         area = cv2.contourArea(cnt)
-        if area > 100 :
+        # this number is random and is strongly dependent on your cam resolution
+        # todo: calculate parameter for area treshold
+        if area > 300000:
             filtered_contours.append(cnt)
+            if area > biggest_contour_area:
+                biggest_contour_area = area
+                biggest_contour = cnt
+
+                # calculate center of line at the center of a frame
+                # todo: do this with centroid with moments (https://docs.opencv.org/3.1.0/dd/d49/tutorial_py_contour_features.html)
+                # cx = int(M['m10']/M['m00'])
+                # cy = int(M['m01']/M['m00'])
+                for point in biggest_contour:
+                    if (point[0,0] >= (height/2 - 3) and (point[0,0] <= (height/2 + 3))):
+                        center_points.append(point[0,1])
+
+    center_of_line = np.average(center_points)
+    center_of_line = round(center_of_line)
+    print(center_of_line)
+
+
 
     # draw big-ass contours on our blank image
-    cv2.drawContours(blank_image, filtered_contours, -1, (0,255,0), 3)
+    cv2.fillPoly(blank_image, pts=[biggest_contour], color=(255, 255, 255))
+    cv2.drawContours(blank_image, biggest_contour, -1, (0, 255, 0), 3)
+
+    # draw two circles, one is a center of a line at the center of an image
+    # second circle represents frame center
+    cv2.circle(frame,(int(center_of_line), int(round(height/2))),10, (0, 255, 0), 5)
+    cv2.circle(frame, (int(round(width / 2)), int(round(height / 2))), 5, (255, 0, 0), 5)
 
     # Display the results and the grayscale input from your camer
     cv2.imshow('detected line',blank_image)
