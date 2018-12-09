@@ -127,6 +127,7 @@ int main(void)
 
 //  initMotors();
   initEncoders();
+  motorCtrlInit();
 
   uint8_t motor = MOTOR_L;
   printf("printf test\n");
@@ -141,18 +142,23 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-	  uint16_t n = sprintf(msg, "It works %d!\r\n", counter);
-	  HAL_UART_Transmit(&huart2, (uint8_t*)msg, n, 100);
-	  uartPrintf("It works with custom printf %d!\r\n", counter);
-	  counter++;
-	  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, !HAL_GPIO_ReadPin(LD2_GPIO_Port, LD2_Pin));
-
-	  setMotor(MOTOR_R, 0.25);
-	  HAL_Delay(500);
-	  setMotor(MOTOR_R, 0);
-	  c1 = TIM4->CNT;
-	  c2 = TIM5->CNT;
-	  uartPrintf("%ld %ld\r\n", c1, c2);
+	  HAL_Delay(10);
+	  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, 1);
+//	  uint16_t n = sprintf(msg, "It works %d!\r\n", counter);
+//	  HAL_UART_Transmit(&huart2, (uint8_t*)msg, n, 100);
+//	  uartPrintf("It works with custom printf %d!\r\n", counter);
+//	  counter++;
+//
+//	  setMotor(MOTOR_R, 0.1);
+//	  setMotor(MOTOR_L, 0.1);
+//	  HAL_Delay(500);
+//	  setMotor(MOTOR_R, 0);
+//	  setMotor(MOTOR_L, 0);
+//	  c1 = TIM4->CNT;
+//	  c2 = TIM5->CNT;
+//	  uartPrintf("%ld %ld\r\n", c1, c2);
+	  motorCtrlSetpoint(0.0, 1.0);
+	  motorCtrlUpdate();
 
 //	  HAL_Delay(1000);
 //	  setMotorPWM(MOTOR_L, DIR_FWD, 0);
@@ -200,6 +206,7 @@ int main(void)
 //		  motor = MOTOR_R;
 //	  else
 //		  motor = MOTOR_L;
+	  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, 0);
   }
   /* USER CODE END 3 */
 

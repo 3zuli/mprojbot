@@ -7,6 +7,10 @@
 
 #include "MotorControl.h"
 
+//float motorKp = 1.0;
+//float motorKi = 0.0;
+//float motorKd = 0.0;
+
 void initMotors(){
 
 }
@@ -90,5 +94,69 @@ void setMotorPWM(uint8_t motor, uint8_t direction, uint32_t pwm){
 		_Error_Handler(__FILE__, __LINE__);
 	}
 
+}
+
+void motorCtrlInit(){
+	encL = TIM4->CNT;
+	encR = TIM5->CNT;
+	encLPrev = encL;
+	encRPrev = encR;
+	motorIntegratorL = 0;
+	motorIntegratorR = 0;
+	motorSetpointL = 0;
+	motorSetpointR = 0;
+	motorEL = 0;
+	motorER = 0;
+	motorEPrevL = 0;
+	motorEPrevR = 0;
+	motorCtrlLastUpdate = HAL_GetTick();
+	motorCtrlCounter = 0;
+}
+
+void motorCtrlUpdate(){
+	uint32_t t = HAL_GetTick();
+	float dt = (t - motorCtrlLastUpdate)*0.001;
+	if(dt>0.1)
+		dt = 0.1;
+	else if(dt<0.001)
+		dt = 0.001;
+
+	encLPrev = encL;
+	encRPrev = encR;
+	encL = TIM4->CNT;
+	encR = TIM5->CNT;
+	int32_t dencL = encLPrev - encL;
+	int32_t dencR = encRPrev - encR;
+//	uartPrintf("%ld %ld\r\n", dencL, dencR);
+	volatile float speedL = -1.0*(float)dencL*enc2omega/dt;
+	volatile float speedR =  1.0*(float)dencR*enc2omega/dt;
+	motorEPrevL = motorEL;
+	motorEPrevR = motorER;
+	motorEL = motorSetpointL - speedL;
+	motorER = motorSetpointR - speedR;
+
+	float dEL = motorEPrevL - motorEL;
+	float dER = motorEPrevR - motorER;
+
+	motorIntegratorL += motorKi * motorEL * dt;
+	motorIntegratorR += motorKi * motorER * dt;
+	float uL = motorKp*motorEL + motorIntegratorL + motorKd*dEL;
+	float uR = motorKp*motorER + motorIntegratorR + motorKd*dER;
+
+//	setMotor(MOTOR_L, uL);
+	setMotor(MOTOR_R, uR);
+
+//	if((motorCtrlCounter++) % 10 == 0){
+//		uartPrintf("%.4f %.4f %.4f %.3f %.3f\r\n", dt, motorEL, motorER, uL, uR);
+//	}
+//	uartPrintf("%.4f %.4f %.3f\r\n", dt, motorER, uR);
+	uartPrintf("%.4f %.4f %.4f %.4f %.3f\r\n", dt, motorER, dER, motorIntegratorR, uR);
+
+	motorCtrlLastUpdate = t;
+}
+
+void motorCtrlSetpoint(float omega_l, float omega_r){
+	motorSetpointL = omega_l*-1;
+	motorSetpointR = omega_r;
 }
 
