@@ -23,6 +23,7 @@ void initEncoders(){
 }
 
 void setMotor(uint8_t motor, float speed){
+	// speed <-1;1> = <-20;20> rad/s
 	if (speed > 1.0f)
 		speed = 1.0f;
 	else if (speed < -1.0f)
@@ -115,10 +116,16 @@ void motorCtrlInit(){
 
 void motorCtrlUpdate(){
 	uint32_t t = HAL_GetTick();
+	// Rate limit
+	if((t - motorCtrlLastUpdate)<motorCtrlRateDt){
+		return;
+	}
+
+	// Calculate & limit delta time
 	float dt = (t - motorCtrlLastUpdate)*0.001;
 	if(dt>0.1)
 		dt = 0.1;
-	else if(dt<0.001)
+	else if(dt<0.001) // avoid div 0
 		dt = 0.001;
 
 	encLPrev = encL;
@@ -127,31 +134,55 @@ void motorCtrlUpdate(){
 	encR = TIM5->CNT;
 	int32_t dencL = encLPrev - encL;
 	int32_t dencR = encRPrev - encR;
-//	uartPrintf("%ld %ld\r\n", dencL, dencR);
+	if(dencR < -40000)  // Handle encoder counter overflow
+		dencR = 65535 + dencR;
+	else if(dencR > 40000)
+		dencR = 65535 - dencR;
+	if(dencL < -40000)
+		dencL = 65535 + dencL;
+	else if(dencL > 40000)
+		dencL = 65535 - dencL;
+
 	volatile float speedL = -1.0*(float)dencL*enc2omega/dt;
 	volatile float speedR =  1.0*(float)dencR*enc2omega/dt;
 	motorEPrevL = motorEL;
 	motorEPrevR = motorER;
+	// Error
 	motorEL = motorSetpointL - speedL;
 	motorER = motorSetpointR - speedR;
-
-	float dEL = motorEPrevL - motorEL;
-	float dER = motorEPrevR - motorER;
-
+	// Derivative
+	float dEL = (motorEPrevL - motorEL)/dt;
+	float dER = (motorEPrevR - motorER)/dt;
+	// Integral + integrator clamping
 	motorIntegratorL += motorKi * motorEL * dt;
 	motorIntegratorR += motorKi * motorER * dt;
+	if(motorIntegratorL > motorIntegratorMax)
+		motorIntegratorL = motorIntegratorMax;
+	else if(motorIntegratorL < -motorIntegratorMax)
+		motorIntegratorL = -motorIntegratorMax;
+	if(motorIntegratorR > motorIntegratorMax)
+		motorIntegratorR = motorIntegratorMax;
+	else if(motorIntegratorR < -motorIntegratorMax)
+		motorIntegratorR = -motorIntegratorMax;
+	// PID magic
+	// Calculate control effort u=<-1;1>
 	float uL = motorKp*motorEL + motorIntegratorL + motorKd*dEL;
 	float uR = motorKp*motorER + motorIntegratorR + motorKd*dER;
 
-//	setMotor(MOTOR_L, uL);
+	setMotor(MOTOR_L, uL);
 	setMotor(MOTOR_R, uR);
 
 //	if((motorCtrlCounter++) % 10 == 0){
 //		uartPrintf("%.4f %.4f %.4f %.3f %.3f\r\n", dt, motorEL, motorER, uL, uR);
 //	}
-//	uartPrintf("%.4f %.4f %.3f\r\n", dt, motorER, uR);
-	uartPrintf("%.4f %.4f %.4f %.4f %.3f\r\n", dt, motorER, dER, motorIntegratorR, uR);
-
+//	uartPrintf("%ld %ld\r\n", dencL, dencR);
+	if((motorCtrlCounter++) % 5 == 0){
+	//	uartPrintf("%.4f %.4f %.3f\r\n", dt, motorER, uR);
+//		uartPrintf("%ld %ld\r\n", encL, encR);
+//		uartPrintf("%ld %ld\r\n", dencL, dencR);
+//		uartPrintf("%.4f %.4f %.4f %.4f %.3f\r\n", dt, motorER, dER, motorIntegratorR, uR);
+		uartPrintf("%.4f %.4f %.4f %.3f\r\n", speedR, motorER, motorIntegratorR, uR);
+	}
 	motorCtrlLastUpdate = t;
 }
 

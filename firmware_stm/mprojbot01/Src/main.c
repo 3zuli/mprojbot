@@ -124,6 +124,11 @@ int main(void)
   uint32_t counter = 0;
   volatile uint32_t c1 = 0;
   volatile uint32_t c2 = 0;
+  int N = 5;
+  int i = 0;
+  float speeds[5] = {2, 5, 10, 15, 8};
+  float setpoint = 2.0;
+  uint32_t t_signal = HAL_GetTick();
 
 //  initMotors();
   initEncoders();
@@ -142,22 +147,34 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-	  HAL_Delay(10);
+//	  HAL_Delay(10);
 	  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, 1);
 //	  uint16_t n = sprintf(msg, "It works %d!\r\n", counter);
 //	  HAL_UART_Transmit(&huart2, (uint8_t*)msg, n, 100);
 //	  uartPrintf("It works with custom printf %d!\r\n", counter);
 //	  counter++;
 //
-//	  setMotor(MOTOR_R, 0.1);
-//	  setMotor(MOTOR_L, 0.1);
-//	  HAL_Delay(500);
+//	  TIM4->CNT = 0;
+//	  TIM5->CNT = 0;
+//	  setMotor(MOTOR_R, -1);
+//	  setMotor(MOTOR_L, 1);
+//	  HAL_Delay(6000);
 //	  setMotor(MOTOR_R, 0);
 //	  setMotor(MOTOR_L, 0);
 //	  c1 = TIM4->CNT;
 //	  c2 = TIM5->CNT;
 //	  uartPrintf("%ld %ld\r\n", c1, c2);
-	  motorCtrlSetpoint(0.0, 1.0);
+	  uint32_t t = HAL_GetTick();
+	  if(t-t_signal > 5000){
+//		  if(setpoint==2.0)
+//			  setpoint=4.0;
+//		  else
+//			  setpoint=2.0;
+		  setpoint = speeds[((i++)%N)];
+		  t_signal = t;
+	  }
+//	  motorCtrlSetpoint(2.0, 2.0);
+	  motorCtrlSetpoint(-setpoint, setpoint);
 	  motorCtrlUpdate();
 
 //	  HAL_Delay(1000);

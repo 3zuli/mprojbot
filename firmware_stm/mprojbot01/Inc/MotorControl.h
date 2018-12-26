@@ -31,10 +31,14 @@ volatile uint32_t encR;
 volatile uint32_t encLPrev;
 volatile uint32_t encRPrev;
 
-static float motorKp = 0.2;
-static float motorKi = 0.025;
-static float motorKd = 0.0;
-static float enc2omega = (2*M_PI)/(4*8*100);
+static int motorCtrlRateDt = 1000/250; // ms / Hz = ms
+static float motorKp = 0.4;  //0.2
+static float motorKi = 0.6; //0.025
+static float motorKd = 0.001; // 0
+static float motorIntegratorMax = 1;
+// 7cpr encoder * 4x sampling = 28 pulses / motor rev * 100:1 gear
+static float wheelCPR = (4*7*100);
+static float enc2omega = (2*M_PI)/(4*7*100);
 float motorIntegratorL;
 float motorIntegratorR;
 float motorSetpointL; // motor setpoint [rad/s]
