@@ -55,10 +55,12 @@
 
 #include "uart.h"
 #include "MotorControl.h"
+#include "ultrasonic.h"
 
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
+TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim5;
@@ -76,7 +78,10 @@ static void MX_GPIO_Init(void);
 static void MX_TIM5_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_TIM3_Init(void);
-static void MX_USART2_UART_Init(void);                                    
+static void MX_USART2_UART_Init(void);
+static void MX_TIM2_Init(void);
+static void MX_NVIC_Init(void);
+                                    
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
                                 
 
@@ -118,6 +123,10 @@ int main(void)
   MX_TIM4_Init();
   MX_TIM3_Init();
   MX_USART2_UART_Init();
+  MX_TIM2_Init();
+
+  /* Initialize interrupts */
+  MX_NVIC_Init();
 
   /* USER CODE BEGIN 2 */
   char msg[100];
@@ -129,14 +138,16 @@ int main(void)
   float speeds[5] = {2, 5, 10, 15, 8};
   float setpoint = 2.0;
   uint32_t t_signal = HAL_GetTick();
+  HAL_TIM_Base_Start(&htim2);
 
 //  initMotors();
   initEncoders();
+  ultrasonicInit();
   motorCtrlInit();
 
-  uint8_t motor = MOTOR_L;
-  printf("printf test\n");
-  uartPrintf("uartPrintf test\n");
+//  uint8_t motor = MOTOR_L;
+//  printf("printf test\n");
+//  uartPrintf("uartPrintf test\n");
 
   /* USER CODE END 2 */
 
@@ -148,11 +159,20 @@ int main(void)
 
   /* USER CODE BEGIN 3 */
 //	  HAL_Delay(10);
-	  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, 1);
+//	  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, 1);
+
 //	  uint16_t n = sprintf(msg, "It works %d!\r\n", counter);
 //	  HAL_UART_Transmit(&huart2, (uint8_t*)msg, n, 100);
 //	  uartPrintf("It works with custom printf %d!\r\n", counter);
 //	  counter++;
+
+//	  volatile uint32_t t1 = TIM2->CNT;
+//	  HAL_Delay(1);
+//	  volatile uint32_t dt = TIM2->CNT - t1;
+	  ultrasonicStartMeasure();
+	  HAL_Delay(100);
+	  float dist = ultrasonicGetDist();
+	  uartPrintf("%.2f\r\n", dist);
 //
 //	  TIM4->CNT = 0;
 //	  TIM5->CNT = 0;
@@ -165,17 +185,12 @@ int main(void)
 //	  c2 = TIM5->CNT;
 //	  uartPrintf("%ld %ld\r\n", c1, c2);
 	  uint32_t t = HAL_GetTick();
-	  if(t-t_signal > 5000){
-//		  if(setpoint==2.0)
-//			  setpoint=4.0;
-//		  else
-//			  setpoint=2.0;
-		  setpoint = speeds[((i++)%N)];
-		  t_signal = t;
-	  }
-//	  motorCtrlSetpoint(2.0, 2.0);
-	  motorCtrlSetpoint(-setpoint, setpoint);
-	  motorCtrlUpdate();
+//	  if(t-t_signal > 5000){
+//		  setpoint = speeds[((i++)%N)];
+//		  t_signal = t;
+//	  }
+//	  motorCtrlSetpoint(-setpoint, setpoint);
+//	  motorCtrlUpdate();
 
 //	  HAL_Delay(1000);
 //	  setMotorPWM(MOTOR_L, DIR_FWD, 0);
@@ -283,6 +298,47 @@ void SystemClock_Config(void)
 
   /* SysTick_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
+}
+
+/** NVIC Configuration
+*/
+static void MX_NVIC_Init(void)
+{
+  /* EXTI15_10_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+}
+
+/* TIM2 init function */
+static void MX_TIM2_Init(void)
+{
+
+  TIM_ClockConfigTypeDef sClockSourceConfig;
+  TIM_MasterConfigTypeDef sMasterConfig;
+
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 9;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 0xFFFFFFFF;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
 }
 
 /* TIM3 init function */
@@ -448,6 +504,9 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(US_TRIGGER_GPIO_Port, US_TRIGGER_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, M1_DIR_Pin|M2_DIR_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : B1_Pin */
@@ -469,16 +528,25 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : US_TRIGGER_Pin */
+  GPIO_InitStruct.Pin = US_TRIGGER_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(US_TRIGGER_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : US_ECHO_Pin */
+  GPIO_InitStruct.Pin = US_ECHO_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(US_ECHO_GPIO_Port, &GPIO_InitStruct);
+
   /*Configure GPIO pins : M1_DIR_Pin M2_DIR_Pin */
   GPIO_InitStruct.Pin = M1_DIR_Pin|M2_DIR_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 }
 
