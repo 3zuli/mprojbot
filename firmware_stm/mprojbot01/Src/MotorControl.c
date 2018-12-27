@@ -201,7 +201,7 @@ void motorCtrlUpdate(){
 //		uartPrintf("%.4f %.4f %.4f %.4f %.3f\r\n", dt, motorER, dER, motorIntegratorR, uR);
 //		uartPrintf("%.4f %.4f %.4f %.3f\r\n", speedR, motorER, motorIntegratorR, uR);
 //		uartPrintf("%.4f %.4f %.4f %.4f %.4f\r\n", speedL, speedR, odomX, odomY, odomRot);
-		uartPrintf("%.4f %.4f %.4f\r\n", odomX, odomY, odomRot);
+//		uartPrintf("%.4f %.4f %.4f\r\n", odomX, odomY, odomRot);
 	}
 	motorCtrlLastUpdate = t;
 }

@@ -138,6 +138,7 @@ int main(void)
   float speeds[5] = {2, 5, 10, 15, 8};
   float setpoint = 2.0;
   uint32_t t_signal = HAL_GetTick();
+  uint32_t t_sentUpdate = HAL_GetTick();
   HAL_TIM_Base_Start(&htim2);
 
 //  initMotors();
@@ -161,6 +162,7 @@ int main(void)
   /* USER CODE BEGIN 3 */
 //	  HAL_Delay(10);
 	  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, 1);
+	  uint32_t t = HAL_GetTick();
 
 //	  uint16_t n = sprintf(msg, "It works %d!\r\n", counter);
 //	  HAL_UART_Transmit(&huart2, (uint8_t*)msg, n, 100);
@@ -172,6 +174,8 @@ int main(void)
 //	  volatile uint32_t dt = TIM2->CNT - t1;
 	  ultrasonicStartMeasure();
 	  float dist = ultrasonicGetDist();
+	  int bumpL = 0;
+	  int bumpR = 0;
 //	  uartPrintf("%.2f\r\n", dist);
 //
 //	  TIM4->CNT = 0;
@@ -184,7 +188,7 @@ int main(void)
 //	  c1 = TIM4->CNT;
 //	  c2 = TIM5->CNT;
 //	  uartPrintf("%ld %ld\r\n", c1, c2);
-	  uint32_t t = HAL_GetTick();
+
 //	  if(t-t_signal > 5000){
 //		  setpoint = speeds[((i++)%N)];
 //		  t_signal = t;
@@ -194,52 +198,12 @@ int main(void)
 	  motorCtrlSetpoint(0, 0);
 	  motorCtrlUpdate();
 
-//	  HAL_Delay(1000);
-//	  setMotorPWM(MOTOR_L, DIR_FWD, 0);
-//	  HAL_Delay(1000);
-//	  setMotorPWM(MOTOR_L, DIR_FWD, 512);
-//	  setMotorPWM(MOTOR_R, DIR_FWD, 512);
-//	  HAL_Delay(1000);
-//	  setMotorPWM(MOTOR_L, DIR_REV, 512);
-//	  setMotorPWM(MOTOR_R, DIR_REV, 512);
-//	  HAL_Delay(1000);
-//	  setMotorPWM(MOTOR_L, DIR_FWD, 2048);
-//	  HAL_Delay(1000);
-//	  setMotorPWM(MOTOR_L, DIR_FWD, 4096);
+	  t = HAL_GetTick();
+	  if(t - t_sentUpdate > 20){
+		  // OdomX[float%.4f],OdomY[float%.4f],OdomRot[float%.4f],BumperL[0/1int],BumperR[0/1int],ultrasound[0..100int]\n"
+		  uartPrintf("%.4f,%.4f,%.4f,%d,%d,%.2f\r\n", odomX, odomY, odomRot, bumpL, bumpR, dist);
+	  }
 
-//	  setMotor(MOTOR_L, 0.25);
-//	  setMotor(MOTOR_R, 0.25);
-//	  HAL_Delay(3000);
-//	  setMotor(MOTOR_L, 0.0);
-//	  setMotor(MOTOR_R, 0.0);
-//	  HAL_Delay(1000);
-//	  setMotor(MOTOR_L, -0.25);
-//	  setMotor(MOTOR_R, -0.25);
-//	  HAL_Delay(3000);
-//	  setMotor(MOTOR_L, 0.0);
-//	  setMotor(MOTOR_R, 0.0);
-//	  HAL_Delay(1000);
-
-//	  float speed = 0;
-//	  for (speed = 0; speed < 1; speed += 0.01){
-//		  setMotor(motor, speed);
-//		  HAL_Delay(10);
-//	  }
-//	  HAL_Delay(500);
-//	  for (speed = 1.0; speed > -1; speed -= 0.01){
-//		  setMotor(motor, speed);
-//		  HAL_Delay(10);
-//	  }
-//	  HAL_Delay(500);
-//	  for (speed = -1.0; speed < 0; speed += 0.01){
-//		  setMotor(motor, speed);
-//		  HAL_Delay(10);
-//	  }
-//	  HAL_Delay(500);
-//	  if (motor == MOTOR_L)
-//		  motor = MOTOR_R;
-//	  else
-//		  motor = MOTOR_L;
 	  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, 0);
   }
   /* USER CODE END 3 */
