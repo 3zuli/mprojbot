@@ -174,8 +174,8 @@ int main(void)
 //	  volatile uint32_t dt = TIM2->CNT - t1;
 	  ultrasonicStartMeasure();
 	  float dist = ultrasonicGetDist();
-	  int bumpL = 0;
-	  int bumpR = 0;
+	  int bumpL = HAL_GPIO_ReadPin(B_BUMPER1_GPIO_Port, B_BUMPER1_Pin);
+	  int bumpR = HAL_GPIO_ReadPin(B_BUMPER2_GPIO_Port, B_BUMPER2_Pin);
 //	  uartPrintf("%.2f\r\n", dist);
 //
 //	  TIM4->CNT = 0;
