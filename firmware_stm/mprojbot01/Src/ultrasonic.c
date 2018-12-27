@@ -19,6 +19,11 @@ void ultrasonicStartMeasure(){
 	if (t-t_lastUSMeasure < USminMeasurePeriod)
 		return;
 
+	if (t-t_lastUSMeasure > USfailPeriod && _usMeasurePhase != IDLE){
+		_usMeasurePhase = IDLE;
+		_ultrasonicDistance = -2;
+	}
+
 	if(_usMeasurePhase == IDLE){
 		t_lastUSMeasure = t;
 		HAL_GPIO_WritePin(US_TRIGGER_GPIO_Port, US_TRIGGER_Pin, 1);

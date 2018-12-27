@@ -9,6 +9,7 @@
 #define MOTORCONTROL_H_
 
 #include "inttypes.h"
+#include "stdbool.h"
 #include "stm32f4xx_hal.h"
 
 //#include "main.h"
@@ -31,6 +32,7 @@ volatile uint32_t encR;
 volatile uint32_t encLPrev;
 volatile uint32_t encRPrev;
 
+// Control
 static int motorCtrlRateDt = 1000/250; // ms / Hz = ms
 static float motorKp = 0.4;  //0.2
 static float motorKi = 0.6; //0.025
@@ -49,16 +51,29 @@ float motorEPrevL;
 float motorEPrevR;
 uint32_t motorCtrlLastUpdate;
 uint32_t motorCtrlCounter;
+static bool motorsEnabled = false;
+
+// Odom
+static float wheel_R = 0.0341/2.0; // wheel radius [m]
+static float wheel_d = 0.09425;  //wheel distance [m]
+float odomX;
+float odomY;
+float odomRot;
 
 
 void initMotors();
 void initEncoders();
+void initOdom();
 
+void enableMotors(bool enable);
 void setMotor(uint8_t motor, float speed);
 void setMotorPWM(uint8_t motor, uint8_t direction, uint32_t pwm);
 
 void motorCtrlInit();
 void motorCtrlUpdate();
 void motorCtrlSetpoint(float omega_l, float omega_r);
+
+void setOdom(float oX, float oY, float oRot);
+void odomUpdate(float wl, float wr, float dt);
 
 #endif /* MOTORCONTROL_H_ */

@@ -27,6 +27,7 @@ extern TIM_HandleTypeDef htim2;
 
 float _ultrasonicDistance;
 static const uint32_t USminMeasurePeriod = 60; // ms
+static const uint32_t USfailPeriod = 30; // ms
 uint32_t t_lastUSMeasure;
 
 typedef enum {IDLE=0, WAITING_START, WAITING_STOP} US_PHASE;

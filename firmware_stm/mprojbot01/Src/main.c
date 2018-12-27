@@ -142,6 +142,7 @@ int main(void)
 
 //  initMotors();
   initEncoders();
+  initOdom();
   ultrasonicInit();
   motorCtrlInit();
 
@@ -159,7 +160,7 @@ int main(void)
 
   /* USER CODE BEGIN 3 */
 //	  HAL_Delay(10);
-//	  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, 1);
+	  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, 1);
 
 //	  uint16_t n = sprintf(msg, "It works %d!\r\n", counter);
 //	  HAL_UART_Transmit(&huart2, (uint8_t*)msg, n, 100);
@@ -170,9 +171,8 @@ int main(void)
 //	  HAL_Delay(1);
 //	  volatile uint32_t dt = TIM2->CNT - t1;
 	  ultrasonicStartMeasure();
-	  HAL_Delay(100);
 	  float dist = ultrasonicGetDist();
-	  uartPrintf("%.2f\r\n", dist);
+//	  uartPrintf("%.2f\r\n", dist);
 //
 //	  TIM4->CNT = 0;
 //	  TIM5->CNT = 0;
@@ -190,7 +190,9 @@ int main(void)
 //		  t_signal = t;
 //	  }
 //	  motorCtrlSetpoint(-setpoint, setpoint);
-//	  motorCtrlUpdate();
+	  enableMotors(false);
+	  motorCtrlSetpoint(0, 0);
+	  motorCtrlUpdate();
 
 //	  HAL_Delay(1000);
 //	  setMotorPWM(MOTOR_L, DIR_FWD, 0);

@@ -22,6 +22,14 @@ void initEncoders(){
 	HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_ALL);
 }
 
+void initOdom(){
+	setOdom(0, 0, 0);
+}
+
+void enableMotors(bool enable){
+	motorsEnabled = enable;
+}
+
 void setMotor(uint8_t motor, float speed){
 	// speed <-1;1> = <-20;20> rad/s
 	if (speed > 1.0f)
@@ -98,6 +106,7 @@ void setMotorPWM(uint8_t motor, uint8_t direction, uint32_t pwm){
 }
 
 void motorCtrlInit(){
+	motorsEnabled = false;
 	encL = TIM4->CNT;
 	encR = TIM5->CNT;
 	encLPrev = encL;
@@ -145,6 +154,9 @@ void motorCtrlUpdate(){
 
 	volatile float speedL = -1.0*(float)dencL*enc2omega/dt;
 	volatile float speedR =  1.0*(float)dencR*enc2omega/dt;
+
+	odomUpdate(speedL, speedR, dt);
+
 	motorEPrevL = motorEL;
 	motorEPrevR = motorER;
 	// Error
@@ -169,8 +181,14 @@ void motorCtrlUpdate(){
 	float uL = motorKp*motorEL + motorIntegratorL + motorKd*dEL;
 	float uR = motorKp*motorER + motorIntegratorR + motorKd*dER;
 
-	setMotor(MOTOR_L, uL);
-	setMotor(MOTOR_R, uR);
+	if(motorsEnabled){
+		setMotor(MOTOR_L, uL);
+		setMotor(MOTOR_R, uR);
+	}
+	else{
+		setMotor(MOTOR_L, 0);
+		setMotor(MOTOR_R, 0);
+	}
 
 //	if((motorCtrlCounter++) % 10 == 0){
 //		uartPrintf("%.4f %.4f %.4f %.3f %.3f\r\n", dt, motorEL, motorER, uL, uR);
@@ -181,7 +199,9 @@ void motorCtrlUpdate(){
 //		uartPrintf("%ld %ld\r\n", encL, encR);
 //		uartPrintf("%ld %ld\r\n", dencL, dencR);
 //		uartPrintf("%.4f %.4f %.4f %.4f %.3f\r\n", dt, motorER, dER, motorIntegratorR, uR);
-		uartPrintf("%.4f %.4f %.4f %.3f\r\n", speedR, motorER, motorIntegratorR, uR);
+//		uartPrintf("%.4f %.4f %.4f %.3f\r\n", speedR, motorER, motorIntegratorR, uR);
+//		uartPrintf("%.4f %.4f %.4f %.4f %.4f\r\n", speedL, speedR, odomX, odomY, odomRot);
+		uartPrintf("%.4f %.4f %.4f\r\n", odomX, odomY, odomRot);
 	}
 	motorCtrlLastUpdate = t;
 }
@@ -191,3 +211,28 @@ void motorCtrlSetpoint(float omega_l, float omega_r){
 	motorSetpointR = omega_r;
 }
 
+void setOdom(float oX, float oY, float oRot){
+	odomX = oX;
+	odomY = oY;
+	odomRot = oRot;
+}
+
+void odomUpdate(float wl, float wr, float dt){
+	float v_k = (wl+wr)*wheel_R;
+	float odomRotPrev = odomRot;
+	odomRot += (wr-wl)*(wheel_R/wheel_d)*dt;
+	// TODO: Yaw clamping to +-PI
+
+
+	if(wl==wr){
+		odomX += v_k*cos(odomRot)*dt;
+		odomY += v_k*sin(odomRot)*dt;
+	}
+	else{
+		float vl = wl*wheel_R;
+		float vr = wr*wheel_R;
+		float frac = (wheel_d/2)*((vr+vl)/(vr-vl));
+		odomX -= frac*(cos(odomRot)-cos(odomRotPrev));
+		odomY += frac*(sin(odomRot)-sin(odomRotPrev));
+	}
+}
