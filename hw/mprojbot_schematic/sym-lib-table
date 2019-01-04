@@ -1,0 +1,4 @@
+(sym_lib_table
+  (lib (name MX1508)(type Legacy)(uri C:/Users/Adam/Documents/MyFiles/projects/mprojbot/hw/mprojbot_schematic/MX1508.lib)(options "")(descr ""))
+  (lib (name DCDC_Modules)(type Legacy)(uri C:/Users/Adam/Documents/MyFiles/projects/mprojbot/hw/mprojbot_schematic/DCDC_Modules.lib)(options "")(descr ""))
+)
