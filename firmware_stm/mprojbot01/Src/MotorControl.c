@@ -186,6 +186,9 @@ void motorCtrlUpdate(){
 		setMotor(MOTOR_R, uR);
 	}
 	else{
+		// Important: zero the integrators!
+		motorIntegratorL = 0;
+		motorIntegratorR = 0;
 		setMotor(MOTOR_L, 0);
 		setMotor(MOTOR_R, 0);
 	}
@@ -207,8 +210,8 @@ void motorCtrlUpdate(){
 }
 
 void motorCtrlSetpoint(float omega_l, float omega_r){
-	motorSetpointL = omega_l*-1;
-	motorSetpointR = omega_r;
+	motorSetpointL = clampOmega(omega_l*-1);
+	motorSetpointR = clampOmega(omega_r);
 }
 
 void setOdom(float oX, float oY, float oRot){
@@ -234,5 +237,16 @@ void odomUpdate(float wl, float wr, float dt){
 		float frac = (wheel_d/2)*((vr+vl)/(vr-vl));
 		odomX -= frac*(cos(odomRot)-cos(odomRotPrev));
 		odomY += frac*(sin(odomRot)-sin(odomRotPrev));
+	}
+}
+
+float clampOmega(float omega){
+	if(omega > OMEGA_MAX)
+		return OMEGA_MAX;
+	else if(omega < -OMEGA_MAX){
+		return -OMEGA_MAX;
+	}
+	else {
+		return omega;
 	}
 }

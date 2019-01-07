@@ -15,6 +15,7 @@
 //#include "main.h"
 #include "math.h"
 #include "uart.h"
+#include "commands.h"
 
 #define MOTOR_L 0
 #define MOTOR_R 1
@@ -22,6 +23,7 @@
 #define DIR_REV 1
 
 #define PWM_MAX 4096
+#define OMEGA_MAX 20.0f
 
 extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim4;
@@ -34,9 +36,9 @@ volatile uint32_t encRPrev;
 
 // Control
 static int motorCtrlRateDt = 1000/250; // ms / Hz = ms
-static float motorKp = 0.4;  //0.2
-static float motorKi = 0.6; //0.025
-static float motorKd = 0.001; // 0
+static float motorKp = 0.3;  //0.2
+static float motorKi = 0.55; //0.025
+static float motorKd = 0.0005; // 0
 static float motorIntegratorMax = 1;
 // 7cpr encoder * 4x sampling = 28 pulses / motor rev * 100:1 gear
 static float wheelCPR = (4*7*100);
@@ -75,5 +77,7 @@ void motorCtrlSetpoint(float omega_l, float omega_r);
 
 void setOdom(float oX, float oY, float oRot);
 void odomUpdate(float wl, float wr, float dt);
+
+float clampOmega(float omega);
 
 #endif /* MOTORCONTROL_H_ */

@@ -9,7 +9,7 @@
   * inserted by the user or by software development tools
   * are owned by their respective copyright owners.
   *
-  * COPYRIGHT(c) 2018 STMicroelectronics
+  * COPYRIGHT(c) 2019 STMicroelectronics
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -56,6 +56,7 @@
 #include "uart.h"
 #include "MotorControl.h"
 #include "ultrasonic.h"
+#include "commands.h"
 
 /* USER CODE END Includes */
 
@@ -139,13 +140,19 @@ int main(void)
   float setpoint = 2.0;
   uint32_t t_signal = HAL_GetTick();
   uint32_t t_sentUpdate = HAL_GetTick();
-  HAL_TIM_Base_Start(&htim2);
+
 
 //  initMotors();
   initEncoders();
   initOdom();
   ultrasonicInit();
   motorCtrlInit();
+  uartInit();
+
+//  HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
+//    HAL_NVIC_EnableIRQ(USART2_IRQn);
+//  huart2.Instance->CR1 = USART_CR1_RE|USART_CR1_TE|USART_CR1_UE|USART_CR1_RXNEIE;
+
 
 //  uint8_t motor = MOTOR_L;
 //  printf("printf test\n");
@@ -169,39 +176,40 @@ int main(void)
 //	  uartPrintf("It works with custom printf %d!\r\n", counter);
 //	  counter++;
 
-//	  volatile uint32_t t1 = TIM2->CNT;
-//	  HAL_Delay(1);
-//	  volatile uint32_t dt = TIM2->CNT - t1;
 	  ultrasonicStartMeasure();
 	  float dist = ultrasonicGetDist();
 	  int bumpL = HAL_GPIO_ReadPin(B_BUMPER1_GPIO_Port, B_BUMPER1_Pin);
 	  int bumpR = HAL_GPIO_ReadPin(B_BUMPER2_GPIO_Port, B_BUMPER2_Pin);
 //	  uartPrintf("%.2f\r\n", dist);
-//
-//	  TIM4->CNT = 0;
-//	  TIM5->CNT = 0;
-//	  setMotor(MOTOR_R, -1);
-//	  setMotor(MOTOR_L, 1);
-//	  HAL_Delay(6000);
-//	  setMotor(MOTOR_R, 0);
-//	  setMotor(MOTOR_L, 0);
-//	  c1 = TIM4->CNT;
-//	  c2 = TIM5->CNT;
-//	  uartPrintf("%ld %ld\r\n", c1, c2);
 
 //	  if(t-t_signal > 5000){
 //		  setpoint = speeds[((i++)%N)];
 //		  t_signal = t;
 //	  }
 //	  motorCtrlSetpoint(-setpoint, setpoint);
-	  enableMotors(false);
-	  motorCtrlSetpoint(0, 0);
+//	  enableMotors(false);
+//	  enableMotors(true);
+//	  motorCtrlSetpoint(0, 0);
+
+	  updateSerialRxCommand();
+	  float setpointL = 0;
+	  float setpointR = 0;
+	  getCmdvelCommand(&setpointL, &setpointR);
+	  /*
+	  0.1,0.1
+	  0.5,0.5
+	   */
+	  motorCtrlSetpoint(-setpointL, setpointR);
+
+	  cmdvelWatchdogUpdate();
+
 	  motorCtrlUpdate();
 
 	  t = HAL_GetTick();
 	  if(t - t_sentUpdate > 20){
 		  // OdomX[float%.4f],OdomY[float%.4f],OdomRot[float%.4f],BumperL[0/1int],BumperR[0/1int],ultrasound[0..100int]\n"
 		  uartPrintf("%.4f,%.4f,%.4f,%d,%d,%.2f\r\n", odomX, odomY, odomRot, bumpL, bumpR, dist);
+		  t_sentUpdate = t;
 	  }
 
 	  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, 0);
