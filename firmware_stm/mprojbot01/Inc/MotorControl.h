@@ -23,7 +23,9 @@
 #define DIR_REV 1
 
 #define PWM_MAX 4096
-#define OMEGA_MAX 20.0f
+#define WHEEL_OMEGA_MAX 20.0f
+#define CMDVEL_VX_MAX 0.3f
+#define CMDVEL_OMEGA_MAX 3.5
 
 extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim4;
@@ -74,10 +76,11 @@ void setMotorPWM(uint8_t motor, uint8_t direction, uint32_t pwm);
 void motorCtrlInit();
 void motorCtrlUpdate();
 void motorCtrlSetpoint(float omega_l, float omega_r);
+void motorCtrlSetpointCmdvel(float v_x, float omega_z);
 
 void setOdom(float oX, float oY, float oRot);
 void odomUpdate(float wl, float wr, float dt);
 
-float clampOmega(float omega);
+float clamp(float value, float limit);
 
 #endif /* MOTORCONTROL_H_ */

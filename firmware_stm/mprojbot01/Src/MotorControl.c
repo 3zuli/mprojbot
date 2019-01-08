@@ -152,7 +152,7 @@ void motorCtrlUpdate(){
 	else if(dencL > 40000)
 		dencL = 65535 - dencL;
 
-	volatile float speedL = -1.0*(float)dencL*enc2omega/dt;
+	volatile float speedL = -1.0*(float)dencL*enc2omega/dt; // speed [rad/s]
 	volatile float speedR =  1.0*(float)dencR*enc2omega/dt;
 
 	odomUpdate(speedL, speedR, dt);
@@ -210,8 +210,17 @@ void motorCtrlUpdate(){
 }
 
 void motorCtrlSetpoint(float omega_l, float omega_r){
-	motorSetpointL = clampOmega(omega_l*-1);
-	motorSetpointR = clampOmega(omega_r);
+	motorSetpointL = clamp(omega_l, WHEEL_OMEGA_MAX);
+	motorSetpointR = clamp(omega_r, WHEEL_OMEGA_MAX);
+}
+
+void motorCtrlSetpointCmdvel(float v_x, float omega_z){
+	v_x = clamp(v_x, CMDVEL_VX_MAX);
+	omega_z = clamp(omega_z, CMDVEL_OMEGA_MAX);
+	float wl = (v_x-wheel_d*omega_z)/wheel_R;
+	float wr = (v_x+wheel_d*omega_z)/wheel_R;
+//	uartPrintf("cmdvel %f %f\r\n", wl, wr);
+	motorCtrlSetpoint(wl, wr);
 }
 
 void setOdom(float oX, float oY, float oRot){
@@ -240,13 +249,13 @@ void odomUpdate(float wl, float wr, float dt){
 	}
 }
 
-float clampOmega(float omega){
-	if(omega > OMEGA_MAX)
-		return OMEGA_MAX;
-	else if(omega < -OMEGA_MAX){
-		return -OMEGA_MAX;
+float clamp(float value, float limit){
+	if(value > limit)
+		return limit;
+	else if(value < -limit){
+		return -limit;
 	}
 	else {
-		return omega;
+		return value;
 	}
 }

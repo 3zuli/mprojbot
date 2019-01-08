@@ -192,14 +192,18 @@ int main(void)
 //	  motorCtrlSetpoint(0, 0);
 
 	  updateSerialRxCommand();
-	  float setpointL = 0;
-	  float setpointR = 0;
-	  getCmdvelCommand(&setpointL, &setpointR);
+	  float v_x = 0.0;
+	  float omega_z = 0.0;
+	  getCmdvelCommand(&v_x, &omega_z);
+	  motorCtrlSetpointCmdvel(v_x, omega_z);
+//	  float setpointL = 0;
+//	  float setpointR = 0;
+//	  getCmdvelCommand(&setpointL, &setpointR);
 	  /*
 	  0.1,0.1
 	  0.5,0.5
 	   */
-	  motorCtrlSetpoint(-setpointL, setpointR);
+//	  motorCtrlSetpoint(setpointL, setpointR);
 
 	  cmdvelWatchdogUpdate();
 

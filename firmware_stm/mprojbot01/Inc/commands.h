@@ -18,7 +18,7 @@
 #include "uart.h"
 
 // cmdvel stuff
-#define CMDVEL_COMMAND_TIMEOUT (uint32_t)(2000) // [ms]
+#define CMDVEL_COMMAND_TIMEOUT (uint32_t)(500) // [ms]
 static float cmd_v_x = 0.0;
 static float cmd_omega_z = 0.0;
 uint32_t t_last_cmdvel;
