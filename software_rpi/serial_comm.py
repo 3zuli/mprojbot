@@ -17,10 +17,12 @@ odom_y = 0.0
 odom_rot = 0.0
 bumper_l = False
 bumper_r = False
-ultrasound = 0.0
+ultrasound = 0.0      # m
 
 
 def _reader_thread():
+    global odom_x, odom_y, odom_rot, bumper_l, bumper_r, ultrasound
+
     counter = 0
     data_str = ""
 
@@ -74,11 +76,30 @@ def _reader_thread():
 
 
 def _writer_thread():
+    global ultrasound
     # hardcode ! this should use variables v_x, omega
+    stop_command = "0.000,0.000\n"
     to_send = "0.100,0.100\n"
+    traject_count = 0
+    glob_counter = 0
+
+    trajectory_types = ['0.100,0.100\n','0.100,-0.100\n','0.100,0.200\n','0.100,-0.200\n']
 
     while _tx_thread_is_running:
-        _port.write(to_send.encode())
+
+        if (ultrasound <= 0.1) and (ultrasound >= 0) :
+            _port.write(stop_command.encode())
+            continue
+
+        if (glob_counter % 50) == 0:
+            glob_counter = 0
+            traject_count += 1
+
+            if traject_count == 4:
+                traject_count = 0
+
+        _port.write(trajectory_types[traject_count].encode())
+        glob_counter += 1
         time.sleep(0.1)
 
 
