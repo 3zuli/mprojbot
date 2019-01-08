@@ -1,14 +1,25 @@
-import numpy as np
+# import the necessary packages
+from picamera.array import PiRGBArray
+from picamera import PiCamera
+import time
 import cv2
+import numpy as np
 
-# -1 -> first working camera on system
-cap = cv2.VideoCapture(-1)
+
+# initialize the camera and grab a reference to the raw camera capture
+camera = PiCamera()
+camera.resolution = (320, 240)
+camera.framerate = 10
+rawCapture = PiRGBArray(camera, size=(320, 240))
+
+# allow the camera to warmup
+time.sleep(0.1)
 
 show_size = True
 
-while(True):
+for frameRaw in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
     # Capture frame-by-frame
-    ret, frame = cap.read()
+    frame = frameRaw.array
 
     # Just show image size - will be used later
     if show_size:
@@ -62,20 +73,27 @@ while(True):
     center_of_line = round(center_of_line)
     print(center_of_line)
 
-
-
     # draw big-ass contours on our blank image
     cv2.fillPoly(blank_image, pts=[biggest_contour], color=(255, 255, 255))
     cv2.drawContours(blank_image, biggest_contour, -1, (0, 255, 0), 3)
 
     # draw two circles, one is a center of a line at the center of an image
     # second circle represents frame center
-    cv2.circle(frame,(int(center_of_line), int(round(height/2))),10, (0, 255, 0), 5)
-    cv2.circle(frame, (int(round(width / 2)), int(round(height / 2))), 5, (255, 0, 0), 5)
+    cv2.circle(frame,(int(center_of_line), int(round(height/2))),30, (0, 255, 0), 5)
+    cv2.circle(frame, (int(round(width / 2)), int(round(height / 2))), 15, (0, 0, 255), 5)
 
-    # Display the results and the grayscale input from your camer
+    # Display the results and the grayscale input from your camera
+    cv2.namedWindow('detected line', cv2.WINDOW_NORMAL)
+    cv2.namedWindow('input', cv2.WINDOW_NORMAL)
+    cv2.resizeWindow('detected line', 640, 480)
+    cv2.resizeWindow('input', 640, 480)
+
     cv2.imshow('detected line',blank_image)
     cv2.imshow('input', frame)
+
+    # clear the stream in preparation for the next frame
+    rawCapture.truncate(0)
+
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
