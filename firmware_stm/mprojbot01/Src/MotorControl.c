@@ -210,15 +210,15 @@ void motorCtrlUpdate(){
 }
 
 void motorCtrlSetpoint(float omega_l, float omega_r){
-	motorSetpointL = clamp(omega_l, WHEEL_OMEGA_MAX);
+	motorSetpointL = clamp(-omega_l, WHEEL_OMEGA_MAX);
 	motorSetpointR = clamp(omega_r, WHEEL_OMEGA_MAX);
 }
 
 void motorCtrlSetpointCmdvel(float v_x, float omega_z){
 	v_x = clamp(v_x, CMDVEL_VX_MAX);
 	omega_z = clamp(omega_z, CMDVEL_OMEGA_MAX);
-	float wl = (v_x-wheel_d*omega_z)/wheel_R;
-	float wr = (v_x+wheel_d*omega_z)/wheel_R;
+	float wl = -(v_x-wheel_d*omega_z/2.0)/wheel_R;
+	float wr = (v_x+wheel_d*omega_z/2.0)/wheel_R;
 //	uartPrintf("cmdvel %f %f\r\n", wl, wr);
 	motorCtrlSetpoint(wl, wr);
 }
