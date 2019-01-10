@@ -6,21 +6,30 @@ import cv2
 import numpy as np
 
 
+# uncomment lines 11-14 if you want to use piCamera
 # initialize the camera and grab a reference to the raw camera capture
-camera = PiCamera()
-camera.resolution = (320, 240)
-camera.framerate = 10
-rawCapture = PiRGBArray(camera, size=(320, 240))
+# camera = PiCamera()
+# camera.resolution = (320, 240)
+# camera.framerate = 10
+# rawCapture = PiRGBArray(camera, size=(320, 240))
 
 # allow the camera to warmup
 time.sleep(0.1)
 
 show_size = True
 
-for frameRaw in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
-    # Capture frame-by-frame
-    frame = frameRaw.array
+# uncomment this, if you want to use video sample to test algorithm
+cap = cv2.VideoCapture('line_test.webm')
 
+#for frameRaw in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
+while (cap.isOpened()):
+    # Capture frame-by-frame
+    # uncomment for use live piCamera
+    #frame = frameRaw.array
+
+    # uncomment if you want to use pre-recorded video
+    ret, frame = cap.read()
+    frame = cv2.resize(frame, (320, 240))
     # Just show image size - will be used later
     if show_size:
         height, width = frame.shape[:2]
@@ -41,7 +50,6 @@ for frameRaw in camera.capture_continuous(rawCapture, format="bgr", use_video_po
     dilated = cv2.dilate(thresh, kernel)
     _, contours, _ = cv2.findContours(dilated.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
-
     filtered_contours = []
 
     # we are able to calculate contour area
@@ -55,7 +63,7 @@ for frameRaw in camera.capture_continuous(rawCapture, format="bgr", use_video_po
         area = cv2.contourArea(cnt)
         # this number is random and is strongly dependent on your cam resolution
         # todo: calculate parameter for area treshold
-        if area > 300000:
+        if area > 3000:
             filtered_contours.append(cnt)
             if area > biggest_contour_area:
                 biggest_contour_area = area
@@ -66,12 +74,12 @@ for frameRaw in camera.capture_continuous(rawCapture, format="bgr", use_video_po
                 # cx = int(M['m10']/M['m00'])
                 # cy = int(M['m01']/M['m00'])
                 for point in biggest_contour:
-                    if (point[0,0] >= (height/2 - 3) and (point[0,0] <= (height/2 + 3))):
-                        center_points.append(point[0,1])
+                    if (point[0,1] >= (height/2 - 3) and (point[0,1] <= (height/2 + 3))):
+                        center_points.append(point[0,0])
 
     center_of_line = np.average(center_points)
     center_of_line = round(center_of_line)
-    print(center_of_line)
+    # print(center_of_line)
 
     # draw big-ass contours on our blank image
     cv2.fillPoly(blank_image, pts=[biggest_contour], color=(255, 255, 255))
@@ -79,8 +87,8 @@ for frameRaw in camera.capture_continuous(rawCapture, format="bgr", use_video_po
 
     # draw two circles, one is a center of a line at the center of an image
     # second circle represents frame center
-    cv2.circle(frame,(int(center_of_line), int(round(height/2))),30, (0, 255, 0), 5)
-    cv2.circle(frame, (int(round(width / 2)), int(round(height / 2))), 15, (0, 0, 255), 5)
+    cv2.circle(frame,(int(center_of_line), int(round(height/2))),3 , (0, 255, 0), 5)
+    cv2.circle(frame, (int(round(width / 2)), int(round(height / 2))), 4, (0, 0, 255), 5)
 
     # Display the results and the grayscale input from your camera
     cv2.namedWindow('detected line', cv2.WINDOW_NORMAL)
@@ -92,7 +100,7 @@ for frameRaw in camera.capture_continuous(rawCapture, format="bgr", use_video_po
     cv2.imshow('input', frame)
 
     # clear the stream in preparation for the next frame
-    rawCapture.truncate(0)
+    # rawCapture.truncate(0)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
