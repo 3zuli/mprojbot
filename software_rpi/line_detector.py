@@ -21,6 +21,7 @@ show_size = True
 # uncomment this, if you want to use video sample to test algorithm
 cap = cv2.VideoCapture('line_test.webm')
 
+# use only one of lines 25, 26. 25 is for live vid from piCamera, 26 for using pre-recorded video
 #for frameRaw in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
 while (cap.isOpened()):
     # Capture frame-by-frame

@@ -1,2 +1,3 @@
 # Place RPi software & other stuff here
-*WARNING line_detector.py will not run on RPi yet. At this time it is meant to be used on PC's with webcam for development purposes.*
+*line_detector.py is now ready for RPi, comment/uncomment tagged lines for using live video from piCamera or 
+pre-recorded video.*
